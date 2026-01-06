@@ -7,6 +7,7 @@ const startScreen = document.getElementById('start-screen');
 const gameOverScreen = document.getElementById('game-over-screen');
 const levelCompleteScreen = document.getElementById('level-complete-screen');
 const levelSelectScreen = document.getElementById('level-select-screen');
+const pauseScreen = document.getElementById('pause-screen');
 const startBtn = document.getElementById('start-btn');
 const restartBtn = document.getElementById('restart-btn');
 const selectLevelBtn = document.getElementById('select-level-btn');
@@ -14,6 +15,9 @@ const repeatLevelBtn = document.getElementById('repeat-level-btn');
 const nextLevelBtn = document.getElementById('next-level-btn');
 const levelSelectFromCompleteBtn = document.getElementById('level-select-from-complete-btn');
 const backToStartBtn = document.getElementById('back-to-start-btn');
+const resumeBtn = document.getElementById('resume-btn');
+const pauseRestartBtn = document.getElementById('pause-restart-btn');
+const pauseLevelSelectBtn = document.getElementById('pause-level-select-btn');
 const finalScoreEl = document.getElementById('final-score');
 const quizModal = document.getElementById('quiz-modal');
 const quizQuestionEl = document.getElementById('quiz-question');
@@ -301,8 +305,8 @@ function initGame(startingLevel = 1, resetScore = true) {
         lives = 3;
     }
 
-    // Reset ghost speed to base value for this level
-    ghostSpeed = 1 + (startingLevel - 1) * 0.3;
+    // Reset ghost speed to base value (always 1)
+    ghostSpeed = 1;
 
     loadLevel(currentGameLevel);
 }
@@ -328,8 +332,6 @@ function loadLevel(level) {
     pellets = [];
     powerPellets = [];
     ghosts = [];
-
-    ghostSpeed = 1 + (level - 1) * 0.3; // Incrementar velocidad por nivel
 
     for (let r = 0; r < ROWS; r++) {
         for (let c = 0; c < COLS; c++) {
@@ -386,7 +388,7 @@ function findGhostSpawns() {
 function animate() {
     if (!gameRunning) return;
     if (isPaused) {
-        animationId = requestAnimationFrame(animate);
+        // No requestAnimationFrame - el loop se detiene completamente
         return;
     }
 
@@ -574,6 +576,9 @@ function closeQuiz(isCorrect) {
         ghostSpeed += 0.2; // Aumentar velocidad si falla
         ghosts.forEach(g => g.isScared = false);
     }
+
+    // Reiniciar el loop de animación
+    animate();
 }
 
 function showGameOver(win) {
@@ -591,7 +596,13 @@ function showGameOver(win) {
 }
 
 window.addEventListener('keydown', (e) => {
-    if (!gameRunning) return;
+    // ESC para pausar/reanudar
+    if (e.key === 'Escape' && gameRunning) {
+        togglePause();
+        return;
+    }
+
+    if (!gameRunning || isPaused) return;
     switch (e.key) {
         case 'ArrowUp': player.nextDir = { x: 0, y: -1 }; break;
         case 'ArrowDown': player.nextDir = { x: 0, y: 1 }; break;
@@ -599,6 +610,18 @@ window.addEventListener('keydown', (e) => {
         case 'ArrowRight': player.nextDir = { x: 1, y: 0 }; break;
     }
 });
+
+// Función para pausar/reanudar el juego
+function togglePause() {
+    isPaused = !isPaused;
+    if (isPaused) {
+        pauseScreen.classList.remove('hidden');
+    } else {
+        pauseScreen.classList.add('hidden');
+        // Reiniciar el loop de animación
+        animate();
+    }
+}
 
 startBtn.addEventListener('click', () => {
     startScreen.classList.add('hidden');
@@ -676,6 +699,24 @@ function updateLevelButtons() {
         }
     });
 }
+
+// Event listeners para menú de pausa
+resumeBtn.addEventListener('click', () => {
+    togglePause();
+});
+
+pauseRestartBtn.addEventListener('click', () => {
+    pauseScreen.classList.add('hidden');
+    isPaused = false;
+    initGame(currentGameLevel, true);
+});
+
+pauseLevelSelectBtn.addEventListener('click', () => {
+    pauseScreen.classList.add('hidden');
+    isPaused = false;
+    gameRunning = false;
+    showLevelSelect();
+});
 
 // Cargar progreso al iniciar
 loadProgress();

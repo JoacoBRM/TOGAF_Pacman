@@ -22,10 +22,13 @@ body {
     display: flex;
     justify-content: space-between;
     margin-bottom: 10px;
-    font-size: 10px; /* CAMBIO: Reducido de 16px a 10px para que quepa en el ancho */
+    font-size: 10px;
+    /* CAMBIO: Reducido de 16px a 10px para que quepa en el ancho */
     color: #ffb897;
-    width: 100%;     /* Asegura que use todo el ancho disponible */
-    box-sizing: border-box; /* Evita problemas de padding */
+    width: 100%;
+    /* Asegura que use todo el ancho disponible */
+    box-sizing: border-box;
+    /* Evita problemas de padding */
 }
 
 .title {
@@ -45,7 +48,8 @@ canvas {
     display: block;
     background-color: #000;
     border: 2px solid #222;
-    margin: 0 auto; /* CAMBIO: Esto centra el mapa si el contenedor es más grande */
+    margin: 0 auto;
+    /* CAMBIO: Esto centra el mapa si el contenedor es más grande */
 }
 
 /* Overlays (Start, Game Over) */
@@ -251,12 +255,31 @@ button:hover {
 
 #level-select-from-complete-btn,
 #select-level-btn,
-#back-to-start-btn {
+#back-to-start-btn,
+#pause-level-select-btn {
     background-color: #0066cc;
 }
 
 #level-select-from-complete-btn:hover,
 #select-level-btn:hover,
-#back-to-start-btn:hover {
+#back-to-start-btn:hover,
+#pause-level-select-btn:hover {
     background-color: #0088ff;
+}
+
+/* Pause Screen Styles */
+#resume-btn {
+    background-color: #00aa00;
+}
+
+#resume-btn:hover {
+    background-color: #00cc00;
+}
+
+#pause-restart-btn {
+    background-color: #ff8800;
+}
+
+#pause-restart-btn:hover {
+    background-color: #ffaa33;
 }
