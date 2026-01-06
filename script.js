@@ -6,8 +6,14 @@ const levelEl = document.getElementById('current-level');
 const startScreen = document.getElementById('start-screen');
 const gameOverScreen = document.getElementById('game-over-screen');
 const levelCompleteScreen = document.getElementById('level-complete-screen');
+const levelSelectScreen = document.getElementById('level-select-screen');
 const startBtn = document.getElementById('start-btn');
 const restartBtn = document.getElementById('restart-btn');
+const selectLevelBtn = document.getElementById('select-level-btn');
+const repeatLevelBtn = document.getElementById('repeat-level-btn');
+const nextLevelBtn = document.getElementById('next-level-btn');
+const levelSelectFromCompleteBtn = document.getElementById('level-select-from-complete-btn');
+const backToStartBtn = document.getElementById('back-to-start-btn');
 const finalScoreEl = document.getElementById('final-score');
 const quizModal = document.getElementById('quiz-modal');
 const quizQuestionEl = document.getElementById('quiz-question');
@@ -15,11 +21,12 @@ const quizOptionsEl = document.getElementById('quiz-options');
 
 // Constants
 const TILE_SIZE = 32;
-const PACMAN_SPEED = 1; 
-let ghostSpeed = 1; 
+const PACMAN_SPEED = 1;
+let ghostSpeed = 1;
 
 // Variables de nivel
 let currentGameLevel = 1;
+let unlockedLevels = 1; // Niveles desbloqueados (persistidos)
 let ROWS = 15;
 let COLS = 14;
 
@@ -122,8 +129,8 @@ class Entity {
         this.y = y;
         this.color = color;
         this.radius = TILE_SIZE / 2 - 2;
-        this.dir = { x: 0, y: 0 }; 
-        this.nextDir = { x: 0, y: 0 }; 
+        this.dir = { x: 0, y: 0 };
+        this.nextDir = { x: 0, y: 0 };
         this.speed = PACMAN_SPEED;
     }
 
@@ -147,7 +154,7 @@ class Entity {
                 let currCol = (this.x - TILE_SIZE / 2) / TILE_SIZE + this.dir.x;
                 let currRow = (this.y - TILE_SIZE / 2) / TILE_SIZE + this.dir.y;
                 if (this.isWall(currRow, currCol)) {
-                    this.dir = { x: 0, y: 0 }; 
+                    this.dir = { x: 0, y: 0 };
                 }
             }
         }
@@ -164,7 +171,7 @@ class Entity {
 
 class Player extends Entity {
     constructor(x, y) {
-        super(x, y, '#ffff00'); 
+        super(x, y, '#ffff00');
         this.mouthOpen = 0.2;
     }
 
@@ -193,7 +200,7 @@ class Ghost extends Entity {
         super(x, y, color);
         this.startColor = color;
         this.isScared = false;
-        this.dir = { x: 1, y: 0 }; 
+        this.dir = { x: 1, y: 0 };
     }
 
     draw() {
@@ -215,7 +222,7 @@ class Ghost extends Entity {
     // FIX MAJOR BUG: Lógica de movimiento que tolera decimales
     update() {
         const currentSpeed = this.isScared ? ghostSpeed * 0.5 : ghostSpeed;
-        
+
         const prevX = this.x;
         const prevY = this.y;
 
@@ -227,7 +234,7 @@ class Ghost extends Entity {
         const centerOffset = TILE_SIZE / 2;
         const currentTileCol = Math.floor(prevX / TILE_SIZE);
         const currentTileRow = Math.floor(prevY / TILE_SIZE);
-        
+
         const centerX = currentTileCol * TILE_SIZE + centerOffset;
         const centerY = currentTileRow * TILE_SIZE + centerOffset;
 
@@ -258,10 +265,10 @@ class Ghost extends Entity {
             // Calcular siguiente casilla basada en la actual (ya alineada)
             let currentGridX = Math.floor((this.x - TILE_SIZE / 2) / TILE_SIZE);
             let currentGridY = Math.floor((this.y - TILE_SIZE / 2) / TILE_SIZE);
-            
+
             let nextCol = currentGridX + d.x;
             let nextRow = currentGridY + d.y;
-            
+
             return !this.isWall(nextRow, nextCol);
         });
 
@@ -276,33 +283,47 @@ class Ghost extends Entity {
 }
 
 // Game Logic
-function initGame(resetLevel = true) {
-    if (resetLevel) {
-        currentGameLevel = 1;
+function loadProgress() {
+    const saved = localStorage.getItem('togafArchitectProgress');
+    if (saved) {
+        unlockedLevels = parseInt(saved);
+    }
+}
+
+function saveProgress() {
+    localStorage.setItem('togafArchitectProgress', unlockedLevels.toString());
+}
+
+function initGame(startingLevel = 1, resetScore = true) {
+    currentGameLevel = startingLevel;
+    if (resetScore) {
         score = 0;
         lives = 3;
     }
-    
+
+    // Reset ghost speed to base value for this level
+    ghostSpeed = 1 + (startingLevel - 1) * 0.3;
+
     loadLevel(currentGameLevel);
 }
 
 function loadLevel(level) {
     if (animationId) cancelAnimationFrame(animationId);
-    
+
     // Cargar datos del nivel
     const levelData = levelMaps[level];
     ROWS = levelData.rows;
     COLS = levelData.cols;
     mapLayout = levelData.map;
-    
+
     // Ajustar canvas al tamaño del nivel
     canvas.width = COLS * TILE_SIZE;
     canvas.height = ROWS * TILE_SIZE;
-    
+
     // Cargar preguntas del nivel
     questions = questionsByLevel[level];
     currentLevel = level;
-    
+
     walls = [];
     pellets = [];
     powerPellets = [];
@@ -331,7 +352,7 @@ function loadLevel(level) {
     // Crear fantasmas según el nivel
     const ghostColors = ['#ff0000', '#ffb8ff', '#00ffff', '#ffb852', '#ff00ff'];
     const spawnPoints = findGhostSpawns();
-    
+
     for (let i = 0; i < levelData.ghostCount; i++) {
         if (spawnPoints[i]) {
             ghosts.push(new Ghost(spawnPoints[i].x, spawnPoints[i].y, ghostColors[i]));
@@ -434,11 +455,11 @@ function checkCollisions() {
 
     let playerDied = false;
     ghosts.forEach(g => {
-        if(playerDied) return;
+        if (playerDied) return;
         const dist = Math.hypot(player.x - g.x, player.y - g.y);
         if (dist < player.radius + g.radius) {
             if (g.isScared) {
-                g.x = 6.5 * TILE_SIZE; 
+                g.x = 6.5 * TILE_SIZE;
                 g.y = 6.5 * TILE_SIZE;
                 g.isScared = false;
                 score += 200;
@@ -456,23 +477,24 @@ function checkCollisions() {
     // Verificar si completó el nivel
     if (pellets.every(p => !p.active) && powerPellets.every(p => !p.active)) {
         gameRunning = false;
-        
-        if (currentGameLevel < 3) {
-            // Mostrar pantalla de nivel completado
-            levelCompleteScreen.classList.remove('hidden');
-            
-            // Pasar al siguiente nivel
-            currentGameLevel++;
-            score += 500; // Bonus por completar nivel
-            scoreEl.innerText = score;
-            
-            setTimeout(() => {
-                levelCompleteScreen.classList.add('hidden');
-                loadLevel(currentGameLevel);
-            }, 3000);
-        } else {
+
+        // Desbloquear siguiente nivel si no está desbloqueado
+        if (currentGameLevel < 3 && unlockedLevels < currentGameLevel + 1) {
+            unlockedLevels = currentGameLevel + 1;
+            saveProgress();
+        }
+
+        // Bonus por completar nivel
+        score += 500;
+        scoreEl.innerText = score;
+
+        if (currentGameLevel >= 3) {
             // Ganó el juego completo
             showGameOver(true);
+        } else {
+            // Mostrar pantalla de nivel completado con opciones
+            levelCompleteScreen.classList.remove('hidden');
+            nextLevelBtn.style.display = 'block';
         }
     }
 }
@@ -499,7 +521,7 @@ function handleDeath() {
                 ghost.isScared = false;
             }
         });
-        
+
         ghostSpeed += 0.1; // Aumentar un poco al morir
     }
 }
@@ -547,7 +569,7 @@ function closeQuiz(isCorrect) {
         ghosts.forEach(g => g.isScared = true);
         setTimeout(() => {
             ghosts.forEach(g => g.isScared = false);
-        }, 8000); 
+        }, 8000);
     } else {
         ghostSpeed += 0.2; // Aumentar velocidad si falla
         ghosts.forEach(g => g.isScared = false);
@@ -558,13 +580,13 @@ function showGameOver(win) {
     gameRunning = false;
     cancelAnimationFrame(animationId);
     gameOverScreen.classList.remove('hidden');
-    
+
     if (win) {
         document.getElementById('game-over-title').innerText = "¡COMPLETASTE TODOS LOS NIVELES!";
     } else {
         document.getElementById('game-over-title').innerText = "GAME OVER - NIVEL " + currentGameLevel;
     }
-    
+
     finalScoreEl.innerText = score;
 }
 
@@ -580,10 +602,80 @@ window.addEventListener('keydown', (e) => {
 
 startBtn.addEventListener('click', () => {
     startScreen.classList.add('hidden');
-    initGame(true); // Reiniciar desde el nivel 1
+    loadProgress();
+    initGame(1, true);
 });
 
 restartBtn.addEventListener('click', () => {
     gameOverScreen.classList.add('hidden');
-    initGame(true); // Reiniciar desde el nivel 1
+    // Reintentar en el nivel actual, no desde el nivel 1
+    initGame(currentGameLevel, true);
 });
+
+// Botón para ir a selección de nivel desde game over
+selectLevelBtn.addEventListener('click', () => {
+    gameOverScreen.classList.add('hidden');
+    showLevelSelect();
+});
+
+// Botón para repetir nivel completado
+repeatLevelBtn.addEventListener('click', () => {
+    levelCompleteScreen.classList.add('hidden');
+    // Repetir nivel actual, mantener score
+    initGame(currentGameLevel, false);
+});
+
+// Botón para siguiente nivel
+nextLevelBtn.addEventListener('click', () => {
+    levelCompleteScreen.classList.add('hidden');
+    currentGameLevel++;
+    initGame(currentGameLevel, false);
+});
+
+// Botón para ir a selección desde nivel completado
+levelSelectFromCompleteBtn.addEventListener('click', () => {
+    levelCompleteScreen.classList.add('hidden');
+    showLevelSelect();
+});
+
+// Botón volver desde selección de nivel
+backToStartBtn.addEventListener('click', () => {
+    levelSelectScreen.classList.add('hidden');
+    startScreen.classList.remove('hidden');
+});
+
+// Listeners para botones de nivel
+document.querySelectorAll('.level-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const level = parseInt(btn.dataset.level);
+        if (level <= unlockedLevels) {
+            levelSelectScreen.classList.add('hidden');
+            initGame(level, true);
+        }
+    });
+});
+
+// Función para mostrar selector de niveles
+function showLevelSelect() {
+    updateLevelButtons();
+    levelSelectScreen.classList.remove('hidden');
+}
+
+// Función para actualizar estado visual de botones de nivel
+function updateLevelButtons() {
+    document.querySelectorAll('.level-btn').forEach(btn => {
+        const level = parseInt(btn.dataset.level);
+        const lockIcon = btn.querySelector('.level-lock');
+
+        if (level <= unlockedLevels) {
+            btn.classList.remove('locked');
+            lockIcon.classList.add('hidden');
+        } else {
+            btn.classList.add('locked');
+            lockIcon.classList.remove('hidden');
+        }
+    });
+}
+
+// Cargar progreso al iniciar
+loadProgress();

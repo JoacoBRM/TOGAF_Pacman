@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 </head>
+
 <body>
 
     <div class="game-container">
@@ -18,7 +20,7 @@
         <div class="level-indicator">LEVEL: <span id="current-level">1</span></div>
 
         <canvas id="gameCanvas" width="448" height="496"></canvas>
-        
+
         <div id="start-screen" class="overlay">
             <h1>TOGAF ARCHITECT</h1>
             <p>Recoge los REQUISITOS (puntos)</p>
@@ -27,16 +29,43 @@
             <button id="start-btn">START GAME</button>
         </div>
 
+        <!-- Level Select Screen -->
+        <div id="level-select-screen" class="overlay hidden">
+            <h1>SELECCIONAR NIVEL</h1>
+            <div class="level-buttons">
+                <button class="level-btn" data-level="1">
+                    <span class="level-number">1</span>
+                    <span class="level-lock hidden">🔒</span>
+                </button>
+                <button class="level-btn locked" data-level="2">
+                    <span class="level-number">2</span>
+                    <span class="level-lock">🔒</span>
+                </button>
+                <button class="level-btn locked" data-level="3">
+                    <span class="level-number">3</span>
+                    <span class="level-lock">🔒</span>
+                </button>
+            </div>
+            <button id="back-to-start-btn">VOLVER</button>
+        </div>
+
         <div id="game-over-screen" class="overlay hidden">
             <h1 id="game-over-title">GAME OVER</h1>
             <p>Final Score: <span id="final-score">0</span></p>
-            <button id="restart-btn">TRY AGAIN</button>
+            <div class="action-buttons">
+                <button id="restart-btn">REINTENTAR NIVEL</button>
+                <button id="select-level-btn">SELECCIONAR NIVEL</button>
+            </div>
         </div>
 
         <div id="level-complete-screen" class="overlay hidden">
             <h1>¡NIVEL COMPLETADO!</h1>
             <p>Bonus: +500 puntos</p>
-            <p>Preparándose para el siguiente nivel...</p>
+            <div class="action-buttons">
+                <button id="repeat-level-btn">REPETIR NIVEL</button>
+                <button id="next-level-btn">SIGUIENTE NIVEL</button>
+                <button id="level-select-from-complete-btn">SELECCIONAR NIVEL</button>
+            </div>
         </div>
     </div>
 
@@ -54,4 +83,5 @@
     <script src="questions.js"></script>
     <script src="script.js"></script>
 </body>
+
 </html>
