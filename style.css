@@ -1,0 +1,164 @@
+body {
+    background-color: #111;
+    color: #fff;
+    font-family: 'Press Start 2P', cursive;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    overflow: hidden;
+}
+
+.game-container {
+    position: relative;
+    border: 4px solid #fff;
+    padding: 10px;
+    background-color: #000;
+    box-shadow: 0 0 20px rgba(0, 0, 255, 0.5);
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 10px; /* CAMBIO: Reducido de 16px a 10px para que quepa en el ancho */
+    color: #ffb897;
+    width: 100%;     /* Asegura que use todo el ancho disponible */
+    box-sizing: border-box; /* Evita problemas de padding */
+}
+
+.title {
+    color: #ffff00;
+    text-shadow: 2px 2px #ff0000;
+}
+
+.level-indicator {
+    text-align: center;
+    font-size: 12px;
+    color: #00ff00;
+    margin-bottom: 5px;
+    text-shadow: 1px 1px #006600;
+}
+
+canvas {
+    display: block;
+    background-color: #000;
+    border: 2px solid #222;
+    margin: 0 auto; /* CAMBIO: Esto centra el mapa si el contenedor es más grande */
+}
+
+/* Overlays (Start, Game Over) */
+.overlay {
+    position: absolute;
+    top: 50px;
+    /* Below header */
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    background-color: rgba(0, 0, 0, 0.9);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    z-index: 10;
+}
+
+.overlay.hidden,
+.modal.hidden {
+    display: none;
+}
+
+.overlay h1 {
+    font-size: 32px;
+    color: #ffff00;
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
+
+.overlay p {
+    font-size: 12px;
+    color: #ccc;
+    margin-bottom: 10px;
+    line-height: 1.5;
+}
+
+button {
+    background-color: #ff0000;
+    color: #fff;
+    border: 2px solid #fff;
+    padding: 15px 30px;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: transform 0.1s;
+}
+
+button:hover {
+    transform: scale(1.05);
+    background-color: #ff3333;
+}
+
+/* Quiz Modal */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+}
+
+.modal-content {
+    background-color: #222;
+    border: 4px solid #00f;
+    padding: 30px;
+    width: 80%;
+    max-width: 600px;
+    text-align: center;
+    box-shadow: 0 0 30px #00f;
+}
+
+#quiz-question {
+    color: #fff;
+    margin-bottom: 30px;
+    font-size: 18px;
+    line-height: 1.6;
+}
+
+.options-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.quiz-btn {
+    background-color: #333;
+    border: 2px solid #555;
+    padding: 15px;
+    color: #fff;
+    font-size: 12px;
+    cursor: pointer;
+    text-align: left;
+}
+
+.quiz-btn:hover {
+    background-color: #444;
+    border-color: #fff;
+}
+
+.quiz-btn.correct {
+    background-color: #00aa00;
+    border-color: #00ff00;
+}
+
+.quiz-btn.wrong {
+    background-color: #aa0000;
+    border-color: #ff0000;
+}

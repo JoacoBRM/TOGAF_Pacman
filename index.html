@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TOGAF Architect</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div class="game-container">
+        <div class="header">
+            <div class="score-box">SCORE: <span id="score">0</span></div>
+            <div class="title">TOGAF ARCHITECT</div>
+            <div class="lives-box">LIVES: <span id="lives">3</span></div>
+        </div>
+        <div class="level-indicator">LEVEL: <span id="current-level">1</span></div>
+
+        <canvas id="gameCanvas" width="448" height="496"></canvas>
+        
+        <div id="start-screen" class="overlay">
+            <h1>TOGAF ARCHITECT</h1>
+            <p>Recoge los REQUISITOS (puntos)</p>
+            <p>Evita los RIESGOS (fantasmas)</p>
+            <p>Usa las FASES ADM para protegerte</p>
+            <button id="start-btn">START GAME</button>
+        </div>
+
+        <div id="game-over-screen" class="overlay hidden">
+            <h1 id="game-over-title">GAME OVER</h1>
+            <p>Final Score: <span id="final-score">0</span></p>
+            <button id="restart-btn">TRY AGAIN</button>
+        </div>
+
+        <div id="level-complete-screen" class="overlay hidden">
+            <h1>¡NIVEL COMPLETADO!</h1>
+            <p>Bonus: +500 puntos</p>
+            <p>Preparándose para el siguiente nivel...</p>
+        </div>
+    </div>
+
+    <!-- Quiz Modal -->
+    <div id="quiz-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2 id="quiz-question">¿Pregunta?</h2>
+            <div id="quiz-options" class="options-grid">
+                <!-- Options injected by JS -->
+            </div>
+            <div id="quiz-timer" class="timer-bar"></div>
+        </div>
+    </div>
+
+    <script src="questions.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
