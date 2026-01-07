@@ -719,4 +719,31 @@ pauseLevelSelectBtn.addEventListener('click', () => {
 });
 
 // Cargar progreso al iniciar
+// Cargar progreso al iniciar
 loadProgress();
+
+// Mobile Controls Logic
+const btnUp = document.getElementById('btn-up');
+const btnDown = document.getElementById('btn-down');
+const btnLeft = document.getElementById('btn-left');
+const btnRight = document.getElementById('btn-right');
+
+function handleDirectionInput(dx, dy) {
+    if (!gameRunning || isPaused) return;
+    player.nextDir = { x: dx, y: dy };
+}
+
+// Helper to add both touch and click listeners
+function addControlListener(btn, dx, dy) {
+    const handler = (e) => {
+        e.preventDefault(); // Prevent default touch behavior (scrolling, zooming)
+        handleDirectionInput(dx, dy);
+    };
+    btn.addEventListener('touchstart', handler, { passive: false });
+    btn.addEventListener('mousedown', handler);
+}
+
+addControlListener(btnUp, 0, -1);
+addControlListener(btnDown, 0, 1);
+addControlListener(btnLeft, -1, 0);
+addControlListener(btnRight, 1, 0);
