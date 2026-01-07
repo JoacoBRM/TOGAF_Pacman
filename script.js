@@ -35,6 +35,8 @@ let ROWS = 15;
 let COLS = 14;
 
 // Mapas por nivel - 1 = Wall, 0 = Empty, 2 = Dot, 3 = Power Pellet (Quiz), 4 = Ghost Spawn
+// Mapas por nivel - 1 = Wall, 0 = Empty, 2 = Dot, 3 = Power Pellet (Quiz), 4 = Ghost Spawn
+// 5 = Coffee, 6 = Shield, 7 = Clock
 const levelMaps = {
     1: {
         rows: 15,
@@ -44,14 +46,14 @@ const levelMaps = {
             [1, 2, 2, 2, 2, 2, 1, 1, 2, 2, 2, 2, 2, 1],
             [1, 2, 1, 1, 1, 2, 1, 1, 2, 1, 1, 1, 2, 1],
             [1, 3, 1, 1, 1, 2, 2, 2, 2, 1, 1, 1, 3, 1],
-            [1, 2, 2, 2, 2, 2, 1, 1, 2, 2, 2, 2, 2, 1],
+            [1, 2, 2, 2, 2, 2, 1, 1, 2, 2, 2, 2, 2, 1], // Removed Coffee (5)
             [1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1],
             [1, 1, 1, 2, 1, 4, 4, 4, 4, 1, 2, 1, 1, 1],
             [1, 2, 2, 2, 2, 2, 1, 1, 2, 2, 2, 2, 2, 1],
             [1, 2, 1, 1, 1, 2, 1, 1, 2, 1, 1, 1, 2, 1],
             [1, 3, 2, 1, 1, 2, 2, 2, 2, 1, 1, 2, 3, 1],
             [1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1],
-            [1, 2, 2, 2, 2, 2, 1, 1, 2, 2, 2, 2, 2, 1],
+            [1, 6, 2, 2, 2, 2, 1, 1, 2, 2, 2, 2, 7, 1], // Added Shield (6) and Clock (7)
             [1, 2, 1, 1, 1, 2, 1, 1, 2, 1, 1, 1, 2, 1],
             [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1],
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
@@ -69,7 +71,7 @@ const levelMaps = {
             [1, 2, 2, 2, 2, 2, 2, 1, 1, 2, 2, 2, 2, 2, 2, 1],
             [1, 2, 1, 1, 1, 1, 2, 1, 1, 2, 1, 1, 1, 1, 2, 1],
             [1, 2, 1, 1, 1, 1, 2, 2, 2, 2, 1, 1, 1, 1, 2, 1],
-            [1, 2, 2, 2, 2, 2, 2, 1, 1, 2, 2, 2, 2, 2, 2, 1],
+            [1, 2, 2, 2, 2, 2, 2, 1, 1, 2, 2, 2, 2, 2, 2, 1], // Removed Coffees
             [1, 1, 1, 2, 1, 1, 1, 4, 4, 1, 1, 1, 2, 1, 1, 1],
             [1, 1, 1, 2, 1, 4, 4, 4, 4, 4, 4, 1, 2, 1, 1, 1],
             [1, 2, 2, 2, 2, 2, 2, 1, 1, 2, 2, 2, 2, 2, 2, 1],
@@ -77,7 +79,7 @@ const levelMaps = {
             [1, 3, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 3, 1],
             [1, 2, 1, 1, 2, 1, 1, 1, 1, 1, 1, 2, 1, 1, 2, 1],
             [1, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 1],
-            [1, 2, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 2, 1],
+            [1, 6, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 7, 1], // Shield and Clock
             [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1],
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         ],
@@ -102,10 +104,10 @@ const levelMaps = {
             [1, 2, 2, 2, 2, 2, 2, 2, 1, 1, 2, 2, 2, 2, 2, 2, 2, 1],
             [1, 2, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 2, 1],
             [1, 3, 1, 1, 2, 1, 1, 1, 2, 2, 1, 1, 1, 2, 1, 1, 3, 1],
-            [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1],
+            [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1], // Removed Double Coffee
             [1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1],
             [1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1],
-            [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1],
+            [1, 6, 2, 2, 2, 2, 2, 2, 7, 2, 2, 2, 2, 2, 2, 2, 7, 1], // Shield and Clocks
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         ],
         ghostCount: 5
@@ -121,10 +123,12 @@ let gameRunning = false;
 let isPaused = false;
 let pellets = [];
 let powerPellets = [];
+let items = []; // For power-ups
 let walls = [];
 let player = null;
 let ghosts = [];
 let animationId;
+let ghostsFrozen = false;
 
 // Classes
 class Entity {
@@ -136,6 +140,7 @@ class Entity {
         this.dir = { x: 0, y: 0 };
         this.nextDir = { x: 0, y: 0 };
         this.speed = PACMAN_SPEED;
+        this.originalSpeed = PACMAN_SPEED;
     }
 
     draw() {
@@ -177,11 +182,23 @@ class Player extends Entity {
     constructor(x, y) {
         super(x, y, '#ffff00');
         this.mouthOpen = 0.2;
+        this.hasShield = false;
     }
 
     draw() {
         ctx.save();
         ctx.translate(this.x, this.y);
+
+        // Dibuja el escudo si está activo
+        if (this.hasShield) {
+            ctx.beginPath();
+            ctx.arc(0, 0, this.radius + 4, 0, Math.PI * 2);
+            ctx.strokeStyle = '#00ffff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.closePath();
+        }
+
         let angle = 0;
         if (this.dir.x === 1) angle = 0;
         else if (this.dir.x === -1) angle = Math.PI;
@@ -225,6 +242,8 @@ class Ghost extends Entity {
 
     // FIX MAJOR BUG: Lógica de movimiento que tolera decimales
     update() {
+        if (ghostsFrozen) return; // Do not move if frozen
+
         const currentSpeed = this.isScared ? ghostSpeed * 0.5 : ghostSpeed;
 
         const prevX = this.x;
@@ -331,7 +350,9 @@ function loadLevel(level) {
     walls = [];
     pellets = [];
     powerPellets = [];
+    items = [];
     ghosts = [];
+    ghostsFrozen = false;
 
     for (let r = 0; r < ROWS; r++) {
         for (let c = 0; c < COLS; c++) {
@@ -345,6 +366,10 @@ function loadLevel(level) {
                 pellets.push({ x, y, active: true });
             } else if (type === 3) {
                 powerPellets.push({ x, y, active: true });
+            } else if (type === 6) {
+                items.push({ x, y, type: 'shield', active: true, color: '#00ffff' }); // Shield
+            } else if (type === 7) {
+                items.push({ x, y, type: 'clock', active: true, color: '#ffffff' }); // Clock
             }
         }
     }
@@ -420,6 +445,31 @@ function animate() {
         }
     });
 
+    // Draw items
+    items.forEach(p => {
+        if (p.active) {
+            ctx.fillStyle = p.color;
+            ctx.beginPath();
+            if (p.type === 'shield') {
+                ctx.arc(p.x, p.y, 6, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            } else if (p.type === 'clock') {
+                ctx.arc(p.x, p.y, 6, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#000';
+                ctx.fillRect(p.x - 1, p.y - 4, 2, 4); // Hand
+                ctx.fillRect(p.x - 1, p.y - 1, 4, 2); // Hand
+            }
+            // Fallback fill for others or just fill
+            if (p.type === 'shield') {
+                // Already drawn
+            }
+        }
+    });
+
     player.update();
     player.draw();
 
@@ -455,6 +505,24 @@ function checkCollisions() {
         }
     });
 
+    items.forEach(p => {
+        if (p.active) {
+            const dist = Math.hypot(player.x - p.x, player.y - p.y);
+            if (dist < player.radius) {
+                p.active = false;
+                score += 50; // Bonus points
+                scoreEl.innerText = score;
+
+                if (p.type === 'shield') {
+                    player.hasShield = true;
+                } else if (p.type === 'clock') {
+                    ghostsFrozen = true;
+                    setTimeout(() => { ghostsFrozen = false; }, 5000); // 5s freeze
+                }
+            }
+        }
+    });
+
     let playerDied = false;
     ghosts.forEach(g => {
         if (playerDied) return;
@@ -467,7 +535,14 @@ function checkCollisions() {
                 score += 200;
                 scoreEl.innerText = score;
             } else {
-                playerDied = true;
+                if (player.hasShield) {
+                    player.hasShield = false;
+                    // Reset ghost position nicely
+                    g.x = 6.5 * TILE_SIZE;
+                    g.y = 6.5 * TILE_SIZE;
+                } else {
+                    playerDied = true;
+                }
             }
         }
     });
@@ -524,7 +599,7 @@ function handleDeath() {
             }
         });
 
-        ghostSpeed += 0.1; // Aumentar un poco al morir
+        ghostSpeed += 0.05; // Aumentar un poco al morir (Reduced from 0.1)
     }
 }
 
@@ -573,7 +648,7 @@ function closeQuiz(isCorrect) {
             ghosts.forEach(g => g.isScared = false);
         }, 8000);
     } else {
-        ghostSpeed += 0.2; // Aumentar velocidad si falla
+        ghostSpeed += 0.05; // Aumentar velocidad si falla (Reduced from 0.2)
         ghosts.forEach(g => g.isScared = false);
     }
 
