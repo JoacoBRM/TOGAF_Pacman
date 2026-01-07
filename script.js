@@ -130,6 +130,63 @@ let ghosts = [];
 let animationId;
 let ghostsFrozen = false;
 
+// Sound Controller
+const soundController = {
+    ctx: null,
+    init() {
+        if (!this.ctx) {
+            this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        } else if (this.ctx.state === 'suspended') {
+            this.ctx.resume();
+        }
+    },
+    playWaka() {
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(200, this.ctx.currentTime);
+        osc.frequency.linearRampToValueAtTime(400, this.ctx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0.05, this.ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.1);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.1);
+    },
+    playStart() {
+        if (!this.ctx) return;
+        const notes = [261.63, 329.63, 392.00, 523.25]; // C E G C
+        let time = this.ctx.currentTime;
+        notes.forEach((note, i) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'square';
+            osc.frequency.value = note;
+            gain.gain.setValueAtTime(0.1, time + i * 0.15);
+            gain.gain.linearRampToValueAtTime(0, time + i * 0.15 + 0.1);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(time + i * 0.15);
+            osc.stop(time + i * 0.15 + 0.1);
+        });
+    },
+    playDeath() {
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(500, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(50, this.ctx.currentTime + 1);
+        gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 1);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 1);
+    }
+};
+
 // Classes
 class Entity {
     constructor(x, y, color) {
@@ -182,7 +239,29 @@ class Player extends Entity {
     constructor(x, y) {
         super(x, y, '#ffff00');
         this.mouthOpen = 0.2;
+        this.mouthSpeed = 0.02;
+        this.mouthClosing = true;
         this.hasShield = false;
+    }
+
+    update() {
+        super.update();
+        // Mouth animation
+        if (this.dir.x !== 0 || this.dir.y !== 0) {
+            if (this.mouthClosing) {
+                this.mouthOpen -= this.mouthSpeed;
+                if (this.mouthOpen <= 0) {
+                    this.mouthOpen = 0;
+                    this.mouthClosing = false;
+                }
+            } else {
+                this.mouthOpen += this.mouthSpeed;
+                if (this.mouthOpen >= 0.2) {
+                    this.mouthOpen = 0.2;
+                    this.mouthClosing = true;
+                }
+            }
+        }
     }
 
     draw() {
@@ -491,6 +570,7 @@ function checkCollisions() {
                 p.active = false;
                 score += 10;
                 scoreEl.innerText = score;
+                soundController.playWaka();
             }
         }
     });
@@ -582,6 +662,7 @@ function handleDeath() {
 
     if (lives <= 0) {
         gameRunning = false;
+        soundController.playDeath();
         showGameOver(false);
     } else {
         player.x = 1.5 * TILE_SIZE;
@@ -699,6 +780,8 @@ function togglePause() {
 }
 
 startBtn.addEventListener('click', () => {
+    soundController.init();
+    soundController.playStart();
     startScreen.classList.add('hidden');
     loadProgress();
     initGame(1, true);
