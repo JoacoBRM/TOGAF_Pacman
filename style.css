@@ -261,8 +261,10 @@ button:hover {
     gap: 10px;
     margin-top: 15px;
     user-select: none;
-    -webkit-user-select: none; /* Safari */
-    touch-action: manipulation; /* Improves touch handling */
+    -webkit-user-select: none;
+    /* Safari */
+    touch-action: manipulation;
+    /* Improves touch handling */
 }
 
 .horizontal-controls {
@@ -282,8 +284,10 @@ button:hover {
     justify-content: center;
     align-items: center;
     cursor: pointer;
-    margin: 0 !important; /* Override general button margin */
-    padding: 0 !important; /* Override general button padding */
+    margin: 0 !important;
+    /* Override general button margin */
+    padding: 0 !important;
+    /* Override general button padding */
     transition: background-color 0.1s;
     -webkit-tap-highlight-color: transparent;
 }
@@ -323,4 +327,36 @@ button:hover {
 
 #pause-restart-btn:hover {
     background-color: #ffaa33;
+}
+
+.pause-mini-btn {
+    background-color: transparent !important;
+    border: 1px solid #fff !important;
+    color: #fff;
+    padding: 5px 8px !important;
+    font-size: 12px !important;
+    margin: 0 !important;
+    cursor: pointer;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pause-mini-btn:hover {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    transform: scale(1.1);
+}
+
+.right-panel {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.pause-icon {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+    display: block;
 }
