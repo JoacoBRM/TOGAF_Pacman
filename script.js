@@ -130,6 +130,7 @@ let player = null;
 let ghosts = [];
 let animationId;
 let ghostsFrozen = false;
+let scaredModeTimer = null; // Timer for scared mode duration
 
 // Sound Controller
 const soundController = {
@@ -412,6 +413,10 @@ function initGame(startingLevel = 1, resetScore = true) {
 
 function loadLevel(level) {
     if (animationId) cancelAnimationFrame(animationId);
+    if (scaredModeTimer) {
+        clearTimeout(scaredModeTimer);
+        scaredModeTimer = null;
+    }
 
     // Cargar datos del nivel
     const levelData = levelMaps[level];
@@ -725,9 +730,14 @@ function closeQuiz(isCorrect) {
     isPaused = false;
 
     if (isCorrect) {
+        // Clear existing timer if any to extend duration
+        if (scaredModeTimer) clearTimeout(scaredModeTimer);
+
         ghosts.forEach(g => g.isScared = true);
-        setTimeout(() => {
+
+        scaredModeTimer = setTimeout(() => {
             ghosts.forEach(g => g.isScared = false);
+            scaredModeTimer = null;
         }, 8000);
     } else {
         ghostSpeed += 0.05; // Aumentar velocidad si falla (Reduced from 0.2)
