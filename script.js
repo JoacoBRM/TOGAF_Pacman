@@ -18,6 +18,7 @@ const backToStartBtn = document.getElementById('back-to-start-btn');
 const resumeBtn = document.getElementById('resume-btn');
 const pauseRestartBtn = document.getElementById('pause-restart-btn');
 const pauseLevelSelectBtn = document.getElementById('pause-level-select-btn');
+const mainPauseBtn = document.getElementById('main-pause-btn');
 const finalScoreEl = document.getElementById('final-score');
 const quizModal = document.getElementById('quiz-modal');
 const quizQuestionEl = document.getElementById('quiz-question');
@@ -861,6 +862,14 @@ function updateLevelButtons() {
 // Event listeners para menú de pausa
 resumeBtn.addEventListener('click', () => {
     togglePause();
+});
+
+mainPauseBtn.addEventListener('click', () => {
+    // Solo permitir pausar si el juego está corriendo y no estamos en un quiz
+    if (gameRunning && !quizModal.classList.contains('hidden')) return; // No pausar durante quiz
+    if (gameRunning) {
+        togglePause();
+    }
 });
 
 pauseRestartBtn.addEventListener('click', () => {

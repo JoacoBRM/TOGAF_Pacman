@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TOGAF Architect</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/png" href="img/favicon.png">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 </head>
 
@@ -15,7 +16,12 @@
         <div class="header">
             <div class="score-box">SCORE: <span id="score">0</span></div>
             <div class="title">TOGAF ARCHITECT</div>
-            <div class="lives-box">LIVES: <span id="lives">3</span></div>
+            <div class="right-panel">
+                <div class="lives-box">LIVES: <span id="lives">3</span></div>
+                <button id="main-pause-btn" class="pause-mini-btn" title="Pausar (ESC)">
+                    <img src="img/pause.jpg" alt="Pause" class="pause-icon">
+                </button>
+            </div>
         </div>
         <div class="level-indicator">LEVEL: <span id="current-level">1</span></div>
 
