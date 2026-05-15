@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TOGAF Architect</title>
+    <title>PACMAN Game</title>
     <link rel="stylesheet" href="style.css">
     <link rel="icon" type="image/png" href="img/favicon.png?v=2">
     <link rel="shortcut icon" type="image/png" href="img/favicon.png?v=2">
@@ -16,7 +16,7 @@
     <div class="game-container">
         <div class="header">
             <div class="score-box">SCORE: <span id="score">0</span></div>
-            <div class="title">TOGAF ARCHITECT</div>
+            <div class="title">PACMAN GAME</div>
             <div class="right-panel">
                 <div class="lives-box">LIVES: <span id="lives">3</span></div>
                 <button id="main-pause-btn" class="pause-mini-btn" title="Pausar (ESC)">
@@ -39,27 +39,53 @@
         </div>
 
         <div id="start-screen" class="overlay">
-            <h1>TOGAF ARCHITECT</h1>
-            <p>Recoge los REQUISITOS (puntos)</p>
-            <p>Evita los RIESGOS (fantasmas)</p>
-            <p>Usa las FASES ADM para protegerte</p>
-            <button id="start-btn">START GAME</button>
+            <h1 class="game-title">PACMAN<br><span class="title-sub">GAME</span></h1>
+
+            <div class="ghost-parade">
+                <div class="parade-pellet"></div>
+                <div class="parade-pellet"></div>
+                <div class="parade-pellet"></div>
+                <div class="parade-pac"></div>
+                <div class="parade-ghost" style="--gc:#ff0000"></div>
+                <div class="parade-ghost" style="--gc:#ffb8ff"></div>
+                <div class="parade-ghost" style="--gc:#00ffff"></div>
+            </div>
+
+            <div class="hi-score-banner">HI-SCORE: <span id="hi-score-val">0</span></div>
+
+            <div class="start-legend">
+                <div class="legend-row"><span class="dot-small"></span> Puntos: +10</div>
+                <div class="legend-row"><span class="dot-big"></span> Power-up: fantasmas asustados</div>
+                <div class="legend-row"><span class="dot-shield"></span> Escudo: bloquea 1 ataque</div>
+                <div class="legend-row"><span class="dot-clock"></span> Reloj: congela fantasmas</div>
+            </div>
+
+            <div class="start-buttons">
+                <button id="start-btn" class="btn-play">▶ INICIAR</button>
+                <button id="start-level-select-btn" class="btn-secondary">SELECCIONAR NIVEL</button>
+            </div>
         </div>
 
         <!-- Level Select Screen -->
         <div id="level-select-screen" class="overlay hidden">
-            <h1>SELECCIONAR NIVEL</h1>
+            <h1>SELECCIONAR<br>NIVEL</h1>
             <div class="level-buttons">
                 <button class="level-btn" data-level="1">
                     <span class="level-number">1</span>
+                    <span class="level-label">FÁCIL</span>
+                    <span class="level-ghosts">👻×3</span>
                     <span class="level-lock hidden">🔒</span>
                 </button>
                 <button class="level-btn locked" data-level="2">
                     <span class="level-number">2</span>
+                    <span class="level-label">MEDIO</span>
+                    <span class="level-ghosts">👻×4</span>
                     <span class="level-lock">🔒</span>
                 </button>
                 <button class="level-btn locked" data-level="3">
                     <span class="level-number">3</span>
+                    <span class="level-label">DIFÍCIL</span>
+                    <span class="level-ghosts">👻×5</span>
                     <span class="level-lock">🔒</span>
                 </button>
             </div>
@@ -68,9 +94,14 @@
 
         <div id="game-over-screen" class="overlay hidden">
             <h1 id="game-over-title">GAME OVER</h1>
-            <p>Final Score: <span id="final-score">0</span></p>
+            <p id="game-over-level" class="gameover-level"></p>
+            <div class="score-block">
+                <div class="score-row">PUNTOS<br><span id="final-score" class="score-big">0</span></div>
+                <div class="score-row">RÉCORD<br><span id="hi-score-gameover" class="score-big hi-col">0</span></div>
+            </div>
+            <p id="new-record-msg" class="new-record hidden">★ NUEVO RÉCORD ★</p>
             <div class="action-buttons">
-                <button id="restart-btn">REINTENTAR NIVEL</button>
+                <button id="restart-btn">REINTENTAR</button>
                 <button id="select-level-btn">SELECCIONAR NIVEL</button>
             </div>
         </div>
@@ -97,18 +128,6 @@
         </div>
     </div>
 
-    <!-- Quiz Modal -->
-    <div id="quiz-modal" class="modal hidden">
-        <div class="modal-content">
-            <h2 id="quiz-question">¿Pregunta?</h2>
-            <div id="quiz-options" class="options-grid">
-                <!-- Options injected by JS -->
-            </div>
-            <div id="quiz-timer" class="timer-bar"></div>
-        </div>
-    </div>
-
-    <script src="questions.js"></script>
     <script src="script.js"></script>
 </body>
 

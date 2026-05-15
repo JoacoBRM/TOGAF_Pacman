@@ -20,14 +20,12 @@ const pauseRestartBtn = document.getElementById('pause-restart-btn');
 const pauseLevelSelectBtn = document.getElementById('pause-level-select-btn');
 const mainPauseBtn = document.getElementById('main-pause-btn');
 const finalScoreEl = document.getElementById('final-score');
-const quizModal = document.getElementById('quiz-modal');
-const quizQuestionEl = document.getElementById('quiz-question');
-const quizOptionsEl = document.getElementById('quiz-options');
+const hiScoreValEl = document.getElementById('hi-score-val');
 
 // Constants
 const TILE_SIZE = 32;
 const PACMAN_SPEED = 1;
-let ghostSpeed = 1;
+let ghostSpeed = 0.65;
 
 // Variables de nivel
 let currentGameLevel = 1;
@@ -119,6 +117,7 @@ let mapLayout = levelMaps[1].map;
 
 // Game State
 let score = 0;
+let highScore = 0;
 let lives = 3;
 let gameRunning = false;
 let isPaused = false;
@@ -131,6 +130,7 @@ let ghosts = [];
 let animationId;
 let ghostsFrozen = false;
 let scaredModeTimer = null; // Timer for scared mode duration
+let ghostComboCount = 0;
 
 // Sound Controller
 const soundController = {
@@ -298,14 +298,35 @@ class Player extends Entity {
 }
 
 class Ghost extends Entity {
-    constructor(x, y, color) {
+    constructor(x, y, color, type = 'random', spawnPoint = null) {
         super(x, y, color);
         this.startColor = color;
         this.isScared = false;
+        this.isEaten = false;
+        this.isRespawning = false;
+        this.type = type;
+        this.spawnPoint = spawnPoint || { x, y };
         this.dir = { x: 1, y: 0 };
     }
 
     draw() {
+        if (this.isEaten) {
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.arc(this.x - 4, this.y - 2, 3, 0, Math.PI * 2);
+            ctx.arc(this.x + 4, this.y - 2, 3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#00f';
+            ctx.beginPath();
+            ctx.arc(this.x - 4 + this.dir.x, this.y - 2 + this.dir.y, 1.5, 0, Math.PI * 2);
+            ctx.arc(this.x + 4 + this.dir.x, this.y - 2 + this.dir.y, 1.5, 0, Math.PI * 2);
+            ctx.fill();
+            return;
+        }
+
+        ctx.save();
+        if (this.isRespawning) ctx.globalAlpha = 0.35;
+
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.radius, Math.PI, 0);
         ctx.lineTo(this.x + this.radius, this.y + this.radius);
@@ -319,11 +340,35 @@ class Ghost extends Entity {
         ctx.arc(this.x - 4, this.y - 2, 3, 0, Math.PI * 2);
         ctx.arc(this.x + 4, this.y - 2, 3, 0, Math.PI * 2);
         ctx.fill();
+        ctx.restore();
     }
 
     // FIX MAJOR BUG: Lógica de movimiento que tolera decimales
     update() {
-        if (ghostsFrozen) return; // Do not move if frozen
+        if (ghostsFrozen && !this.isEaten) return;
+
+        if (this.isRespawning) return;
+
+        if (this.isEaten) {
+            const dx = this.spawnPoint.x - this.x;
+            const dy = this.spawnPoint.y - this.y;
+            const dist = Math.hypot(dx, dy);
+            if (dist < 3) {
+                this.x = this.spawnPoint.x;
+                this.y = this.spawnPoint.y;
+                this.isEaten = false;
+                this.isRespawning = true;
+                setTimeout(() => {
+                    this.isRespawning = false;
+                    this.dir = { x: 1, y: 0 };
+                }, 3000);
+            } else {
+                this.dir = { x: dx / dist, y: dy / dist };
+                this.x += (dx / dist) * ghostSpeed * 3;
+                this.y += (dy / dist) * ghostSpeed * 3;
+            }
+            return;
+        }
 
         const currentSpeed = this.isScared ? ghostSpeed * 0.5 : ghostSpeed;
 
@@ -362,26 +407,31 @@ class Ghost extends Entity {
             { x: 0, y: -1 }, { x: 0, y: 1 }, { x: -1, y: 0 }, { x: 1, y: 0 }
         ];
 
+        const currentGridX = Math.floor((this.x - TILE_SIZE / 2) / TILE_SIZE);
+        const currentGridY = Math.floor((this.y - TILE_SIZE / 2) / TILE_SIZE);
+
         const validDirs = directions.filter(d => {
-            // No reversa inmediata
             if (d.x === -this.dir.x && d.y === -this.dir.y) return false;
-
-            // Calcular siguiente casilla basada en la actual (ya alineada)
-            let currentGridX = Math.floor((this.x - TILE_SIZE / 2) / TILE_SIZE);
-            let currentGridY = Math.floor((this.y - TILE_SIZE / 2) / TILE_SIZE);
-
-            let nextCol = currentGridX + d.x;
-            let nextRow = currentGridY + d.y;
-
-            return !this.isWall(nextRow, nextCol);
+            return !this.isWall(currentGridY + d.y, currentGridX + d.x);
         });
 
-        if (validDirs.length > 0) {
-            const pick = validDirs[Math.floor(Math.random() * validDirs.length)];
-            this.dir = pick;
-        } else {
-            // Si es un callejón sin salida, dar la vuelta
+        if (validDirs.length === 0) {
             this.dir = { x: -this.dir.x, y: -this.dir.y };
+            return;
+        }
+
+        if (this.type === 'chaser' && !this.isScared && player) {
+            const playerCol = Math.floor((player.x - TILE_SIZE / 2) / TILE_SIZE);
+            const playerRow = Math.floor((player.y - TILE_SIZE / 2) / TILE_SIZE);
+            let bestDir = validDirs[0];
+            let bestDist = Infinity;
+            validDirs.forEach(d => {
+                const dist = Math.abs((currentGridX + d.x) - playerCol) + Math.abs((currentGridY + d.y) - playerRow);
+                if (dist < bestDist) { bestDist = dist; bestDir = d; }
+            });
+            this.dir = bestDir;
+        } else {
+            this.dir = validDirs[Math.floor(Math.random() * validDirs.length)];
         }
     }
 }
@@ -389,8 +439,11 @@ class Ghost extends Entity {
 // Game Logic
 function loadProgress() {
     const saved = localStorage.getItem('togafArchitectProgress');
-    if (saved) {
-        unlockedLevels = parseInt(saved);
+    if (saved) unlockedLevels = parseInt(saved);
+    const savedHi = localStorage.getItem('togafHighScore');
+    if (savedHi) {
+        highScore = parseInt(savedHi);
+        if (hiScoreValEl) hiScoreValEl.innerText = highScore;
     }
 }
 
@@ -405,8 +458,7 @@ function initGame(startingLevel = 1, resetScore = true) {
         lives = 3;
     }
 
-    // Reset ghost speed to base value (always 1)
-    ghostSpeed = 1;
+    ghostSpeed = 0.65;
 
     loadLevel(currentGameLevel);
 }
@@ -427,10 +479,6 @@ function loadLevel(level) {
     // Ajustar canvas al tamaño del nivel
     canvas.width = COLS * TILE_SIZE;
     canvas.height = ROWS * TILE_SIZE;
-
-    // Cargar preguntas del nivel
-    questions = questionsByLevel[level];
-    currentLevel = level;
 
     walls = [];
     pellets = [];
@@ -464,10 +512,13 @@ function loadLevel(level) {
     // Crear fantasmas según el nivel
     const ghostColors = ['#ff0000', '#ffb8ff', '#00ffff', '#ffb852', '#ff00ff'];
     const spawnPoints = findGhostSpawns();
+    const chasersPerLevel = { 1: 1, 2: 2, 3: 2 };
+    const chaserCount = chasersPerLevel[level] || 1;
 
     for (let i = 0; i < levelData.ghostCount; i++) {
         if (spawnPoints[i]) {
-            ghosts.push(new Ghost(spawnPoints[i].x, spawnPoints[i].y, ghostColors[i]));
+            const type = i < chaserCount ? 'chaser' : 'random';
+            ghosts.push(new Ghost(spawnPoints[i].x, spawnPoints[i].y, ghostColors[i], type, spawnPoints[i]));
         }
     }
 
@@ -586,7 +637,7 @@ function checkCollisions() {
             const dist = Math.hypot(player.x - p.x, player.y - p.y);
             if (dist < player.radius) {
                 p.active = false;
-                triggerQuiz();
+                activateScaredMode();
             }
         }
     });
@@ -612,13 +663,15 @@ function checkCollisions() {
     let playerDied = false;
     ghosts.forEach(g => {
         if (playerDied) return;
+        if (g.isEaten || g.isRespawning) return;
         const dist = Math.hypot(player.x - g.x, player.y - g.y);
         if (dist < player.radius + g.radius) {
             if (g.isScared) {
-                g.x = 6.5 * TILE_SIZE;
-                g.y = 6.5 * TILE_SIZE;
                 g.isScared = false;
-                score += 200;
+                g.isEaten = true;
+                const points = Math.min(200 * Math.pow(2, ghostComboCount), 1600);
+                ghostComboCount++;
+                score += points;
                 scoreEl.innerText = score;
             } else {
                 if (player.hasShield) {
@@ -662,104 +715,125 @@ function checkCollisions() {
     }
 }
 
+function playDeathAnimation(callback) {
+    soundController.playDeath();
+    const px = player.x;
+    const py = player.y;
+    const r = player.radius;
+    const duration = 1100;
+    let startTime = null;
+
+    function drawScene() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#0000ff';
+        walls.forEach(w => {
+            ctx.fillRect(w.x, w.y, w.w, w.h);
+            ctx.fillStyle = '#000';
+            ctx.fillRect(w.x + 4, w.y + 4, w.w - 8, w.h - 8);
+            ctx.fillStyle = '#0000ff';
+        });
+        ctx.fillStyle = '#ffb8ae';
+        pellets.forEach(p => {
+            if (p.active) { ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI * 2); ctx.fill(); }
+        });
+        powerPellets.forEach(p => {
+            if (p.active) { ctx.beginPath(); ctx.arc(p.x, p.y, 8, 0, Math.PI * 2); ctx.fill(); }
+        });
+    }
+
+    function animFrame(ts) {
+        if (!startTime) startTime = ts;
+        const t = Math.min((ts - startTime) / duration, 1);
+
+        drawScene();
+
+        // Boca se abre de 0 a π (círculo completo = desaparece), con rotación
+        const mouth = t * Math.PI * 0.98;
+        const scale = 1 - t * 0.5;
+        ctx.save();
+        ctx.translate(px, py);
+        ctx.rotate(-Math.PI / 2 + t * Math.PI);
+        ctx.beginPath();
+        ctx.arc(0, 0, r * scale, mouth, Math.PI * 2 - mouth);
+        ctx.lineTo(0, 0);
+        ctx.fillStyle = '#ffff00';
+        ctx.fill();
+        ctx.restore();
+
+        if (t < 1) {
+            animationId = requestAnimationFrame(animFrame);
+        } else {
+            setTimeout(callback, 300);
+        }
+    }
+
+    animationId = requestAnimationFrame(animFrame);
+}
+
 function handleDeath() {
     lives--;
     livesEl.innerText = lives;
+    gameRunning = false;
 
-    if (lives <= 0) {
-        gameRunning = false;
-        soundController.playDeath();
-        showGameOver(false);
-    } else {
-        player.x = 1.5 * TILE_SIZE;
-        player.y = 1.5 * TILE_SIZE;
-        player.dir = { x: 0, y: 0 };
-        player.nextDir = { x: 0, y: 0 };
+    playDeathAnimation(() => {
+        if (lives <= 0) {
+            showGameOver(false);
+        } else {
+            player.x = 1.5 * TILE_SIZE;
+            player.y = 1.5 * TILE_SIZE;
+            player.dir = { x: 0, y: 0 };
+            player.nextDir = { x: 0, y: 0 };
 
-        // Reposicionar fantasmas en sus spawns
-        const spawnPoints = findGhostSpawns();
-        ghosts.forEach((ghost, idx) => {
-            if (spawnPoints[idx]) {
-                ghost.x = spawnPoints[idx].x;
-                ghost.y = spawnPoints[idx].y;
-                ghost.isScared = false;
-            }
-        });
+            const spawnPoints = findGhostSpawns();
+            ghosts.forEach((ghost, idx) => {
+                if (spawnPoints[idx]) {
+                    ghost.x = spawnPoints[idx].x;
+                    ghost.y = spawnPoints[idx].y;
+                    ghost.isScared = false;
+                    ghost.isEaten = false;
+                    ghost.isRespawning = false;
+                }
+            });
 
-        ghostSpeed += 0.05; // Aumentar un poco al morir (Reduced from 0.1)
-    }
-}
-
-function triggerQuiz() {
-    isPaused = true;
-    const qIndex = Math.floor(Math.random() * questions.length);
-    const qData = questions[qIndex];
-
-    quizQuestionEl.innerText = qData.question;
-    quizOptionsEl.innerHTML = '';
-
-    qData.options.forEach((opt, idx) => {
-        const btn = document.createElement('button');
-        btn.className = 'quiz-btn';
-        btn.innerText = opt;
-        btn.onclick = () => handleAnswer(idx, qData.answer);
-        quizOptionsEl.appendChild(btn);
+            gameRunning = true;
+            animate();
+        }
     });
-
-    quizModal.classList.remove('hidden');
 }
 
-function handleAnswer(selected, correct) {
-    const btns = document.querySelectorAll('.quiz-btn');
-    if (selected === correct) {
-        btns[selected].classList.add('correct');
-        setTimeout(() => {
-            closeQuiz(true);
-        }, 1000);
-    } else {
-        btns[selected].classList.add('wrong');
-        btns[correct].classList.add('correct');
-        setTimeout(() => {
-            closeQuiz(false);
-        }, 1500);
-    }
-}
-
-function closeQuiz(isCorrect) {
-    quizModal.classList.add('hidden');
-    isPaused = false;
-
-    if (isCorrect) {
-        // Clear existing timer if any to extend duration
-        if (scaredModeTimer) clearTimeout(scaredModeTimer);
-
-        ghosts.forEach(g => g.isScared = true);
-
-        scaredModeTimer = setTimeout(() => {
-            ghosts.forEach(g => g.isScared = false);
-            scaredModeTimer = null;
-        }, 8000);
-    } else {
-        ghostSpeed += 0.05; // Aumentar velocidad si falla (Reduced from 0.2)
+function activateScaredMode() {
+    if (scaredModeTimer) clearTimeout(scaredModeTimer);
+    ghostComboCount = 0;
+    ghosts.forEach(g => { if (!g.isEaten) g.isScared = true; });
+    scaredModeTimer = setTimeout(() => {
         ghosts.forEach(g => g.isScared = false);
-    }
-
-    // Reiniciar el loop de animación
-    animate();
+        scaredModeTimer = null;
+    }, 8000);
 }
 
 function showGameOver(win) {
     gameRunning = false;
     cancelAnimationFrame(animationId);
-    gameOverScreen.classList.remove('hidden');
 
-    if (win) {
-        document.getElementById('game-over-title').innerText = "¡COMPLETASTE TODOS LOS NIVELES!";
+    if (score > highScore) {
+        highScore = score;
+        localStorage.setItem('togafHighScore', highScore.toString());
+        if (hiScoreValEl) hiScoreValEl.innerText = highScore;
+        document.getElementById('new-record-msg').classList.remove('hidden');
     } else {
-        document.getElementById('game-over-title').innerText = "GAME OVER - NIVEL " + currentGameLevel;
+        document.getElementById('new-record-msg').classList.add('hidden');
     }
 
+    document.getElementById('game-over-title').innerText = win
+        ? '¡COMPLETADO!'
+        : 'GAME OVER';
+    document.getElementById('game-over-level').innerText = win
+        ? 'TODOS LOS NIVELES'
+        : 'NIVEL ' + currentGameLevel;
+
     finalScoreEl.innerText = score;
+    document.getElementById('hi-score-gameover').innerText = highScore;
+    gameOverScreen.classList.remove('hidden');
 }
 
 window.addEventListener('keydown', (e) => {
@@ -796,6 +870,13 @@ startBtn.addEventListener('click', () => {
     startScreen.classList.add('hidden');
     loadProgress();
     initGame(1, true);
+});
+
+document.getElementById('start-level-select-btn').addEventListener('click', () => {
+    soundController.init();
+    startScreen.classList.add('hidden');
+    loadProgress();
+    showLevelSelect();
 });
 
 restartBtn.addEventListener('click', () => {
@@ -875,11 +956,7 @@ resumeBtn.addEventListener('click', () => {
 });
 
 mainPauseBtn.addEventListener('click', () => {
-    // Solo permitir pausar si el juego está corriendo y no estamos en un quiz
-    if (gameRunning && !quizModal.classList.contains('hidden')) return; // No pausar durante quiz
-    if (gameRunning) {
-        togglePause();
-    }
+    if (gameRunning) togglePause();
 });
 
 pauseRestartBtn.addEventListener('click', () => {
